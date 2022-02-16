@@ -63,7 +63,9 @@ jobs:
         run: |
           git config --global user.email "tech@gofjords.com"
           git config --global user.name "Tech@GoFjords"
+          git checkout -b hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
           git commit --allow-empty -m "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}"
+          git push -u origin hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.token }}
       - name: Create Pull Request
