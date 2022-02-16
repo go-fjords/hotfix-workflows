@@ -25,7 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
@@ -68,10 +69,10 @@ jobs:
           git commit --allow-empty -m "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}"
           git push -u origin hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_PRIVATE_REPOS }}
-      - name: Create Hotfix Pull Request
-        run: |
-          echo -e "Deploy instructions will be added by Github Actions upon successful build." > msg
-          gh pr create --title "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}" -F msg
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_PRIVATE_REPOS }}
+          GITHUB_TOKEN: ${{ secrets.token }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}
+          body: Deploy instructions will be added by Github Actions upon successful build.
+          token: ${{ secrets.token }}
