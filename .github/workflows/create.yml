@@ -71,5 +71,6 @@ jobs:
         with:
           title: Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}
           body: Deploy instructions will be added by Github Actions upon successful build.
+          base: main
           branch: hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
           token: ${{ secrets.token }}
