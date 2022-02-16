@@ -68,11 +68,9 @@ jobs:
           git push -u origin hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.token }}
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
-        with:
-          title: Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}
-          body: Deploy instructions will be added by Github Actions upon successful build.
-          base: main
-          branch: hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
-          token: ${{ secrets.token }}
+      - name: Create Hotfix Pull Request
+        run: |
+          echo -e "Deploy instructions will be added by Github Actions upon successful build." > msg
+          gh pr create --title "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}" -F msg
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
