@@ -16,8 +16,6 @@ on:
         description: 'May contain secrets, therefore it is located under secrets'
       token:
         required: true
-      token_repos:
-        required: true
 
 jobs:
   create-hotfix:
@@ -55,7 +53,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ env.GITHUB_COMMIT_SHA }}
-          token: ${{ secrets.token_repos }}
+          token: ${{ secrets.token }}
         env:
           GITHUB_COMMIT_SHA: ${{ steps.github-commit-sha.outputs.GITHUB_COMMIT_SHA}}
       - name: Create Branch Name
