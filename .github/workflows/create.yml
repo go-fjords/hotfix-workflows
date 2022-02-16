@@ -69,10 +69,10 @@ jobs:
           git commit --allow-empty -m "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}"
           git push -u origin hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
         env:
-          GITHUB_TOKEN: ${{ secrets.token }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_PRIVATE_REPOS }}
       - name: Create Hotfix Pull Request
         run: |
           echo -e "Deploy instructions will be added by Github Actions upon successful build." > msg
           gh pr create --title "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}" -F msg
         env:
-          GITHUB_TOKEN: ${{ secrets.token }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_PRIVATE_REPOS }}
