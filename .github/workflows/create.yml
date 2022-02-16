@@ -1,0 +1,72 @@
+name: 'Create Hotfix'
+on:
+  workflow_call:
+    inputs:
+      gcloud-service-account:
+        required: true
+        type: string
+        description: 'GCloud Service Account to authenticate as, e.g. github-actions@...'
+      gcloud-workload-identity-provider:
+        required: true
+        type: string
+        description: 'GCloud Identity Provider id to use for federated authentication'
+    secrets:
+      gcloud-docker-image-url:
+        required: true
+        description: 'May contain secrets, therefore it is located under secrets'
+      token:
+        required: true
+
+jobs:
+  create-hotfix:
+    name: Create Hotfix
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: ${{ inputs.gcloud-workload-identity-provider }}
+          service_account: ${{ inputs.gcloud-service-account }}
+      - name: Docker login to GCP
+        uses: docker/login-action@v1
+        with:
+          registry: europe-west1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Pull Image
+        run: |
+          docker pull ${{ secrets.gcloud-docker-image-url }}:prod-v2
+        shell: bash
+      - name: Get Github Commit SHA
+        id: github-commit-sha
+        run: |
+          export GITHUB_COMMIT_SHA=$(docker inspect --format '{{ index .Config.Labels "github_sha"}}' ${{ secrets.gcloud-docker-image-url }}:prod-v2)
+          echo "::set-output name=GITHUB_COMMIT_SHA::$GITHUB_COMMIT_SHA"
+        shell: bash
+      - name: Checkout commit
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ env.GITHUB_COMMIT_SHA }}
+          token: ${{ secrets.token }}
+        env:
+          GITHUB_COMMIT_SHA: ${{ steps.github-commit-sha.outputs.GITHUB_COMMIT_SHA}}
+      - name: Create Branch Name
+        id: branch-name
+        run: echo "::set-output name=BRANCH_NAME::prod__$(date +'%Y-%m-%d')__$(uuidgen)"
+      - name: Create Hotfix Branch
+        run: |
+          git config --global user.email "tech@gofjords.com"
+          git config --global user.name "Tech@GoFjords"
+          git checkout -b hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
+          git commit --allow-empty -m "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}"
+          git push -u origin hotfix/${{ steps.branch-name.outputs.BRANCH_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
+      - name: Create Hotfix Pull Request
+        run: |
+          echo -e "Deploy instructions will be added by Github Actions upon successful build." > msg
+          gh pr create --title "Hotfix ${{ steps.branch-name.outputs.BRANCH_NAME }}" -F msg
+        env:
+          GITHUB_TOKEN: ${{ secrets.token }}
