@@ -26,7 +26,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      pull-requests: write
     steps:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
